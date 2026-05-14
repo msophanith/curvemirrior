@@ -1,0 +1,306 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --bg: #08080f;
+  --surface: #111120;
+  --border: rgba(255, 255, 255, 0.08);
+  --accent: #7c3aed;
+  --accent-glow: rgba(124, 58, 237, 0.45);
+  --text: #f0eeff;
+  --muted: rgba(240, 238, 255, 0.45);
+  --radius: 16px;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: "DM Sans", system-ui, sans-serif;
+  min-height: 100dvh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow-x: hidden;
+}
+
+#root {
+  width: 100%;
+  max-width: 480px;
+  padding: 0 16px 32px;
+}
+
+.app {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 28px;
+  padding-top: 28px;
+}
+
+.header {
+  text-align: center;
+}
+.header h1 {
+  font-size: clamp(26px, 6vw, 36px);
+  font-weight: 700;
+  letter-spacing: -0.03em;
+  background: linear-gradient(135deg, #c4b5fd 0%, #818cf8 50%, #38bdf8 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.subtitle {
+  color: var(--muted);
+  margin-top: 4px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-size: 11px;
+}
+
+/* ── Mirror stage ── */
+.mirror-stage {
+  position: relative;
+  width: 100%;
+  max-width: 320px;
+  aspect-ratio: 1;
+}
+
+/* Outer ambient glow */
+.mirror-glow {
+  position: absolute;
+  inset: -18px;
+  border-radius: 50%;
+  background: radial-gradient(circle, var(--accent-glow) 0%, transparent 68%);
+  filter: blur(24px);
+  z-index: 0;
+  animation: pulse 3s ease-in-out infinite;
+  pointer-events: none;
+}
+.mirror-glow.poked {
+  animation: pulse-poke 0.45s ease-out forwards;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 0.55;
+    transform: scale(0.93);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+}
+@keyframes pulse-poke {
+  0% {
+    opacity: 0.6;
+    transform: scale(0.95);
+  }
+  35% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+  100% {
+    opacity: 0.85;
+    transform: scale(1.05);
+  }
+}
+
+/* Frame ring — sits above canvas via z-index, purely decorative */
+.mirror-frame {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  z-index: 3;
+  pointer-events: none;
+
+  /* Beveled chrome rim: dark outer edge → light highlight → mid-tone → shadow */
+  box-shadow:
+    /* outer dark ring */
+    0 0 0 3px #1a1a2a,
+    /* bright top-left bevel highlight */ 0 0 0 5px rgba(255, 255, 255, 0.55),
+    /* rim body */ 0 0 0 14px #2a2a3e,
+    /* inner shadow gives depth */ 0 0 0 15px rgba(0, 0, 0, 0.7),
+    /* subtle outer glow */ 0 6px 32px rgba(0, 0, 0, 0.6);
+
+  /* Conic gradient painted as a pseudo-element for the angled sheen */
+}
+
+.mirror-frame::before {
+  content: "";
+  position: absolute;
+  inset: 3px; /* sits just inside the outer dark ring */
+  border-radius: 50%;
+  background: conic-gradient(
+    from 220deg,
+    rgba(255, 255, 255, 0) 0deg,
+    rgba(255, 255, 255, 0.45) 60deg,
+    rgba(255, 255, 255, 0.08) 120deg,
+    rgba(80, 80, 120, 0.3) 200deg,
+    rgba(255, 255, 255, 0) 260deg,
+    rgba(255, 255, 255, 0.3) 310deg,
+    rgba(255, 255, 255, 0) 360deg
+  );
+  /* only show as the rim band — mask out the centre */
+  -webkit-mask: radial-gradient(circle, transparent 88%, black 89%);
+  mask: radial-gradient(circle, transparent 88%, black 89%);
+}
+
+/* Canvas — perfectly round, clips content */
+.mirror-canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  position: relative;
+  z-index: 1;
+  touch-action: none;
+  cursor: crosshair;
+  /* inset shadow makes the glass look recessed inside the frame */
+  box-shadow: inset 0 2px 18px rgba(0, 0, 0, 0.55);
+}
+.mirror-canvas.poked {
+  cursor: grabbing;
+}
+
+.overlay-msg {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: rgba(8, 8, 15, 0.72);
+  font-size: 13px;
+  color: var(--muted);
+  text-align: center;
+  padding: 32px;
+  z-index: 10;
+}
+.overlay-msg.error {
+  color: #f87171;
+}
+
+/* ── Controls ── */
+.controls {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.type-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.type-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 4px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  color: var(--muted);
+  cursor: pointer;
+  transition: all 0.18s ease;
+  font-family: inherit;
+}
+.type-btn:active {
+  transform: scale(0.95);
+}
+.type-btn.active {
+  background: rgba(124, 58, 237, 0.15);
+  border-color: var(--accent);
+  color: var(--text);
+  box-shadow: 0 0 16px rgba(124, 58, 237, 0.25);
+}
+
+.type-icon {
+  font-size: 20px;
+  line-height: 1;
+}
+.type-label {
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+}
+
+.slider-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+}
+.slider-row label {
+  font-size: 13px;
+  color: var(--muted);
+  white-space: nowrap;
+  min-width: 60px;
+}
+.slider-row input[type="range"] {
+  flex: 1;
+  height: 4px;
+  -webkit-appearance: none;
+  appearance: none;
+  background: linear-gradient(to right, var(--accent), #38bdf8);
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+.slider-row input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: white;
+  box-shadow: 0 0 8px var(--accent-glow);
+  cursor: pointer;
+}
+.slider-val {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  min-width: 36px;
+  text-align: right;
+}
+
+.cam-btn {
+  width: 100%;
+  padding: 14px;
+  background: rgba(124, 58, 237, 0.15);
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  letter-spacing: 0.02em;
+}
+.cam-btn:hover {
+  background: rgba(124, 58, 237, 0.28);
+  box-shadow: 0 0 20px rgba(124, 58, 237, 0.3);
+}
+
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #f5f3ff;
+    --surface: #ede9fe;
+    --border: rgba(0, 0, 0, 0.1);
+    --text: #1e1b4b;
+    --muted: rgba(30, 27, 75, 0.5);
+  }
+}
