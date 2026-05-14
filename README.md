@@ -27,3 +27,16 @@ It leverages:
 ---
 
 ## 📂 Project Structure
+
+curve-mirror/
+├── public/             # Static assets
+├── src/                # Source code
+│   ├── components/     # Reusable UI components
+│   ├── pages/          # Next.js pages (routing)
+│   ├── hooks/          # Custom React hooks
+│   ├── utils/          # Utility/helper functions
+│   └── styles/         # Global and component styles
+├── vite.config.ts      # Vite configuration
+├── next.config.js      # Next.js configuration
+├── package.json
+└── README.md
